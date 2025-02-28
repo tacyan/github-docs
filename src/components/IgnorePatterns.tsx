@@ -276,6 +276,87 @@ export default function IgnorePatterns({
     onPatternsChange(JSON.stringify(docsPatterns), JSON.stringify(newPatterns));
   };
 
+  /**
+   * ENTERキーが押されたときの処理
+   * 最終行が空でない場合は改行を追加する
+   * 
+   * @param e - キーボードイベント
+   * @param textValue - 現在のテキスト値
+   * @param setText - テキスト設定関数
+   */
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+    textValue: string,
+    setText: (value: string) => void
+  ) => {
+    // ENTERキーが押された場合
+    if (e.key === 'Enter') {
+      const lines = textValue.split('\n');
+      const lastLine = lines[lines.length - 1];
+      
+      // テキストエリア要素への参照を保存
+      const textareaElement = e.currentTarget;
+      
+      // 最終行が空でない場合
+      if (lastLine.trim() !== '') {
+        // カーソル位置を取得
+        const cursorPosition = textareaElement.selectionStart;
+        
+        // カーソルが最終行の末尾にある場合のみ処理
+        if (cursorPosition === textValue.length) {
+          e.preventDefault(); // デフォルトの改行動作を防止
+          
+          // 改行を追加
+          const newText = textValue + '\n';
+          setText(newText);
+          
+          // 次のレンダリング後にカーソル位置を設定
+          setTimeout(() => {
+            // テキストエリアの要素を取得して、カーソル位置を設定
+            if (textareaElement) {
+              textareaElement.selectionStart = newText.length;
+              textareaElement.selectionEnd = newText.length;
+              textareaElement.focus();
+              
+              // スクロール位置を最終行に合わせる
+              textareaElement.scrollTop = textareaElement.scrollHeight;
+            }
+          }, 0);
+        } else {
+          // カーソルが最終行の末尾にない場合は、カーソルを最終行に移動
+          e.preventDefault(); // デフォルトの改行動作を防止
+          
+          // 次のレンダリング後にカーソル位置を設定
+          setTimeout(() => {
+            if (textareaElement) {
+              textareaElement.selectionStart = textValue.length;
+              textareaElement.selectionEnd = textValue.length;
+              textareaElement.focus();
+              
+              // スクロール位置を最終行に合わせる
+              textareaElement.scrollTop = textareaElement.scrollHeight;
+            }
+          }, 0);
+        }
+      } else {
+        // 最終行が空の場合でも、カーソルを最終行に移動
+        e.preventDefault(); // デフォルトの改行動作を防止
+        
+        // 次のレンダリング後にカーソル位置を設定
+        setTimeout(() => {
+          if (textareaElement) {
+            textareaElement.selectionStart = textValue.length;
+            textareaElement.selectionEnd = textValue.length;
+            textareaElement.focus();
+            
+            // スクロール位置を最終行に合わせる
+            textareaElement.scrollTop = textareaElement.scrollHeight;
+          }
+        }, 0);
+      }
+    }
+  };
+
   return (
     <div className="border border-gray-200 rounded-md overflow-hidden">
       <div className="flex border-b border-gray-200">
@@ -311,6 +392,7 @@ export default function IgnorePatterns({
             <textarea
               value={docsText}
               onChange={handleDocsTextChange}
+              onKeyDown={(e) => handleKeyDown(e, docsText, setDocsText)}
               className="w-full h-64 p-2 border border-gray-300 rounded-md font-mono text-sm resize-y"
               placeholder="# 例: node_modules/"
               aria-label=".GithubDocsignoreパターン"
@@ -324,6 +406,7 @@ export default function IgnorePatterns({
             <textarea
               value={sourceText}
               onChange={handleSourceTextChange}
+              onKeyDown={(e) => handleKeyDown(e, sourceText, setSourceText)}
               className="w-full h-64 p-2 border border-gray-300 rounded-md font-mono text-sm resize-y"
               placeholder="# 例: ^\s*\/\/.*$"
               aria-label=".GithubDocsSourceignoreパターン"
