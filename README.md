@@ -1,5 +1,35 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 実装状況
+
+現在のアプリケーションは以下のURLでデプロイされています：
+
+**デプロイURL**: [https://github-docs-kl1muztgh-varuvaru10000-yahoocojps-projects.vercel.app/](https://github-docs-kl1muztgh-varuvaru10000-yahoocojps-projects.vercel.app/)
+
+### 実装済み機能
+
+- GitHubリポジトリの分析機能
+- マークダウン形式のドキュメント生成
+- 無視パターン設定（.GithubDocsignoreと.GithubDocsSourceignore）
+- シンタックスハイライト付きコード表示
+- レスポンシブデザイン
+
+### 技術スタック
+
+- **フロントエンド**: Next.js 15.2.0, React 19.0.0, TailwindCSS 4
+- **API**: GitHub API (Octokit)
+- **マークダウン処理**: marked 15.0.7
+- **シンタックスハイライト**: highlight.js 11.11.1
+- **デプロイ**: Vercel
+
+### 今後の改善点
+
+- ESLintエラーの修正
+- TypeScriptの型エラー修正
+- パフォーマンスの最適化
+- ユーザー認証機能の追加
+- ドキュメント生成オプションの拡張
+
 ## Getting Started
 
 First, run the development server:
