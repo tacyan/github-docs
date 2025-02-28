@@ -1,0 +1,100 @@
+# .GithubDocsignore
+# このファイルはGitHubリポジトリの分析時に無視するファイルやディレクトリを指定します。
+# .gitignoreと同様の形式で記述します。
+
+# ビルドディレクトリ
+/build/
+/dist/
+/out/
+/.next/
+/.nuxt/
+/.output/
+
+# 依存関係
+/node_modules/
+/.pnp/
+/.pnp.js
+/vendor/
+/.venv/
+/venv/
+/env/
+/.env/
+/pip-wheel-metadata/
+
+# キャッシュ
+/.cache/
+/.eslintcache
+/.stylelintcache
+/.parcel-cache
+/.rts2_cache_*/
+/.rts2_cache/
+/.npm/
+/.yarn/
+/.pnpm/
+
+# ログ
+/logs/
+/*.log
+/npm-debug.log*
+/yarn-debug.log*
+/yarn-error.log*
+/pnpm-debug.log*
+
+# 環境変数
+/.env
+/.env.local
+/.env.development.local
+/.env.test.local
+/.env.production.local
+
+# エディタ設定
+/.idea/
+/.vscode/
+/.vs/
+/*.sublime-*
+/*.swp
+/*.swo
+/.DS_Store
+/Thumbs.db
+
+# テスト関連
+/coverage/
+/.nyc_output/
+/.jest/
+/.cypress/
+/cypress/videos/
+/cypress/screenshots/
+
+# バイナリファイル
+/*.exe
+/*.dll
+/*.so
+/*.dylib
+/*.bin
+/*.obj
+/*.o
+/*.a
+/*.lib
+/*.out
+/*.app
+
+# 画像ファイル（必要に応じてコメントアウト）
+# /*.jpg
+# /*.jpeg
+# /*.png
+# /*.gif
+# /*.svg
+# /*.ico
+
+# その他
+/.git/
+/.github/
+/.gitlab/
+/.circleci/
+/.travis.yml
+/LICENSE
+/LICENSE.*
+/CHANGELOG.md
+/CONTRIBUTING.md
+/CODE_OF_CONDUCT.md
+/SECURITY.md
