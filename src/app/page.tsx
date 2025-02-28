@@ -91,6 +91,17 @@ export default function Home() {
         throw new Error(errorData.error || 'リポジトリ情報の取得に失敗しました。');
       }
       const infoData = await infoResponse.json();
+      
+      // オブジェクトの各プロパティが適切に文字列化されていることを確認
+      Object.keys(infoData).forEach(key => {
+        if (typeof infoData[key] === 'object' && infoData[key] !== null) {
+          // 既に文字列化されていない場合のみ文字列化
+          if (typeof infoData[key].toString === 'function' && infoData[key].toString() === '[object Object]') {
+            infoData[key] = JSON.stringify(infoData[key]);
+          }
+        }
+      });
+      
       setRepoInfo(infoData);
 
       // ファイルツリーを取得
@@ -112,7 +123,18 @@ export default function Home() {
       }
 
       const treeData = await treeResponse.json();
-      setFileTree(treeData.fileTree || []);
+      
+      // ファイルツリーデータが適切な形式であることを確認
+      let fileTreeData = treeData.fileTree || [];
+      if (typeof fileTreeData === 'string') {
+        try {
+          fileTreeData = JSON.parse(fileTreeData);
+        } catch (e) {
+          console.error('ファイルツリーのパースに失敗しました:', e);
+        }
+      }
+      
+      setFileTree(fileTreeData);
 
       // マークダウンを生成
       const markdownResponse = await fetch('/api/github/markdown', {
@@ -134,7 +156,18 @@ export default function Home() {
       }
 
       const markdownData = await markdownResponse.json();
-      setMarkdown(markdownData.markdown || '');
+      
+      // マークダウンデータが適切な形式であることを確認
+      let markdownContent = markdownData.markdown || '';
+      if (typeof markdownContent === 'object') {
+        try {
+          markdownContent = JSON.stringify(markdownContent, null, 2);
+        } catch (e) {
+          console.error('マークダウンの文字列化に失敗しました:', e);
+        }
+      }
+      
+      setMarkdown(markdownContent);
     } catch (error) {
       console.error('エラーが発生しました:', error);
       setError(error instanceof Error ? error.message : '不明なエラーが発生しました。');
@@ -149,9 +182,16 @@ export default function Home() {
    * @param newDocsPatterns - 新しい.GithubDocsignoreパターン
    * @param newSourcePatterns - 新しい.GithubDocsSourceignoreパターン
    */
-  const handlePatternsChange = (newDocsPatterns: string[], newSourcePatterns: string[]) => {
-    setDocsPatterns(newDocsPatterns);
-    setSourcePatterns(newSourcePatterns);
+  const handlePatternsChange = (newDocsPatterns: string, newSourcePatterns: string) => {
+    try {
+      const parsedDocsPatterns = JSON.parse(newDocsPatterns);
+      const parsedSourcePatterns = JSON.parse(newSourcePatterns);
+      setDocsPatterns(parsedDocsPatterns);
+      setSourcePatterns(parsedSourcePatterns);
+    } catch (error) {
+      console.error('パターンのパースに失敗しました:', error);
+      setError('無視パターンの処理中にエラーが発生しました。');
+    }
   };
 
   /**
@@ -183,7 +223,44 @@ export default function Home() {
       }
 
       const data = await response.json();
-      setFileContent(data.content || '');
+      
+      // ファイル内容の処理
+      let displayContent = '';
+      
+      // データが存在するか確認
+      if (data.content) {
+        // JSONファイルの場合は特別な処理
+        if (path.endsWith('.json')) {
+          // すでに文字列の場合はそのまま使用
+          if (typeof data.content === 'string') {
+            try {
+              // 文字列がJSON形式かチェック
+              const parsed = JSON.parse(data.content);
+              // 整形して表示
+              displayContent = JSON.stringify(parsed, null, 2);
+            } catch (e) {
+              // パースに失敗した場合はそのまま表示
+              displayContent = data.content;
+            }
+          } else if (typeof data.content === 'object') {
+            // オブジェクトの場合は文字列化
+            displayContent = JSON.stringify(data.content, null, 2);
+          } else {
+            displayContent = String(data.content);
+          }
+        } else {
+          // 通常のファイルの場合
+          if (typeof data.content === 'object') {
+            displayContent = JSON.stringify(data.content, null, 2);
+          } else {
+            displayContent = String(data.content);
+          }
+        }
+      } else {
+        displayContent = 'ファイル内容が空です。';
+      }
+      
+      setFileContent(displayContent);
     } catch (error) {
       console.error('ファイル内容の取得に失敗しました:', error);
       setFileContent('ファイル内容の取得に失敗しました。');

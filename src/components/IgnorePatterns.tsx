@@ -17,7 +17,7 @@ import { useState, useEffect } from 'react';
 interface IgnorePatternsProps {
   initialDocsPatterns?: string[];
   initialSourcePatterns?: string[];
-  onPatternsChange: (docsPatterns: string[], sourcePatterns: string[]) => void;
+  onPatternsChange: (docsPatterns: string, sourcePatterns: string) => void;
 }
 
 /**
@@ -57,7 +57,8 @@ export default function IgnorePatterns({
     setDocsText(newText);
     const newPatterns = newText.split('\n').filter(line => line.trim() !== '');
     setDocsPatterns(newPatterns);
-    onPatternsChange(newPatterns, sourcePatterns);
+    // 配列を文字列として渡す
+    onPatternsChange(JSON.stringify(newPatterns), JSON.stringify(sourcePatterns));
   };
 
   /**
@@ -70,7 +71,8 @@ export default function IgnorePatterns({
     setSourceText(newText);
     const newPatterns = newText.split('\n').filter(line => line.trim() !== '');
     setSourcePatterns(newPatterns);
-    onPatternsChange(docsPatterns, newPatterns);
+    // 配列を文字列として渡す
+    onPatternsChange(JSON.stringify(docsPatterns), JSON.stringify(newPatterns));
   };
 
   return (

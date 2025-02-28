@@ -220,8 +220,22 @@ export async function getFileContent(
 ): Promise<string> {
   try {
     const url = `https://raw.githubusercontent.com/${repoInfo.owner}/${repoInfo.repo}/${branch}/${filePath}`;
-    const response = await axios.get(url);
-    return response.data;
+    
+    // JSONファイルの場合は特別な処理を行う
+    if (filePath.endsWith('.json')) {
+      // responseTypeを'text'に設定して生のテキストを取得
+      const response = await axios.get(url, { responseType: 'text' });
+      return response.data;
+    } else {
+      const response = await axios.get(url);
+      
+      // レスポンスがオブジェクトの場合は文字列化
+      if (typeof response.data === 'object' && response.data !== null) {
+        return JSON.stringify(response.data, null, 2);
+      }
+      
+      return response.data;
+    }
   } catch (error) {
     console.error(`ファイル内容の取得に失敗しました (${filePath}):`, error);
     throw new Error(`ファイルの取得に失敗しました: ${filePath}`);

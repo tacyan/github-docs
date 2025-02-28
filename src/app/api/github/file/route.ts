@@ -48,9 +48,15 @@ export async function GET(request: NextRequest) {
     
     const content = await getFileContent(repoInfo, filePath, branch);
     
+    // ファイル内容がオブジェクトの場合は文字列化
+    let contentToReturn = content;
+    if (typeof content === 'object' && content !== null) {
+      contentToReturn = JSON.stringify(content, null, 2);
+    }
+    
     return NextResponse.json({
       filePath,
-      content
+      content: contentToReturn
     });
   } catch (error) {
     console.error(`ファイル内容の取得に失敗しました (${filePath}):`, error);
@@ -96,10 +102,16 @@ export async function POST(request: NextRequest) {
     
     const content = await getFileContent(repoInfo, filePath, branch);
     
+    // ファイル内容がオブジェクトの場合は文字列化
+    let processedContent = content;
+    if (typeof content === 'object' && content !== null) {
+      processedContent = JSON.stringify(content, null, 2);
+    }
+    
     // ソースコード内の無視パターンに一致する行をフィルタリング
-    let filteredContent = content;
+    let filteredContent = processedContent;
     if (sourceIgnorePatterns.length > 0) {
-      const lines = content.split('\n');
+      const lines = processedContent.split('\n');
       const filteredLines = lines.filter(line => !shouldIgnore(line, sourceIgnorePatterns));
       filteredContent = filteredLines.join('\n');
     }
