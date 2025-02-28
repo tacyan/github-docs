@@ -280,8 +280,8 @@ export async function generateRepositoryMarkdown(
  * マークダウンをHTMLに変換する
  * 
  * @param markdown - マークダウン文字列
- * @returns HTML文字列
+ * @returns HTML文字列のPromise
  */
-export function convertMarkdownToHtml(markdown: string): string {
+export async function convertMarkdownToHtml(markdown: string): Promise<string> {
   return marked.parse(markdown);
 } 
