@@ -167,12 +167,19 @@ export async function getRepositoryContributors(
       per_page: maxContributors
     });
 
-    return contributors.map(contributor => ({
-      ユーザー名: contributor.login,
-      コントリビューション数: contributor.contributions,
-      アバターURL: contributor.avatar_url,
-      プロフィールURL: contributor.html_url
-    }));
+    // 型安全のためにデータを検証して変換
+    return contributors
+      .filter(contributor => 
+        contributor.login !== undefined && 
+        contributor.avatar_url !== undefined && 
+        contributor.html_url !== undefined
+      )
+      .map(contributor => ({
+        ユーザー名: contributor.login!,
+        コントリビューション数: contributor.contributions,
+        アバターURL: contributor.avatar_url!,
+        プロフィールURL: contributor.html_url!
+      }));
   } catch (error) {
     console.error('コントリビューター情報の取得に失敗しました:', error);
     throw new Error('コントリビューター情報の取得に失敗しました。');
@@ -198,7 +205,14 @@ export async function getRepoTree(
       recursive: '1'
     });
     
-    return data.tree;
+    // 型安全のためにデータを検証して変換
+    return data.tree.filter((item): item is TreeItem => {
+      return item.path !== undefined && 
+             item.mode !== undefined && 
+             item.type !== undefined && 
+             item.sha !== undefined && 
+             item.url !== undefined;
+    });
   } catch (error) {
     console.error('リポジトリツリーの取得に失敗しました:', error);
     throw new Error('リポジトリの内容を取得できませんでした。');
@@ -211,14 +225,45 @@ export async function getRepoTree(
  * @param repoInfo - リポジトリ情報
  * @param filePath - ファイルパス
  * @param branch - ブランチ名
+ * @param ignorePatterns - 無視パターン（オプション）
  * @returns ファイルの内容
  */
 export async function getFileContent(
   repoInfo: RepoInfo,
   filePath: string,
-  branch: string
+  branch: string,
+  ignorePatterns: string[] = []
 ): Promise<string> {
   try {
+    // 無視パターンに一致するファイルは除外
+    if (filePath === 'package-lock.json' || filePath.endsWith('/package-lock.json')) {
+      return '// このファイルは除外されています';
+    }
+    
+    // 他の無視パターンをチェック
+    if (ignorePatterns.length > 0) {
+      // ファイル名だけを取得
+      const fileName = filePath.split('/').pop() || '';
+      
+      // 無視パターンに一致するかチェック
+      for (const pattern of ignorePatterns) {
+        // コメント行や空行はスキップ
+        if (pattern.startsWith('#') || pattern.trim() === '') continue;
+        
+        // ワイルドカードパターンを正規表現に変換
+        const regexPattern = pattern
+          .replace(/\./g, '\\.')
+          .replace(/\*/g, '.*')
+          .replace(/\?/g, '.');
+        
+        // パターンがファイル名に一致するか、またはパスに一致するかチェック
+        const regex = new RegExp(`^${regexPattern}$`);
+        if (regex.test(fileName) || regex.test(filePath)) {
+          return '// このファイルは除外されています';
+        }
+      }
+    }
+    
     const url = `https://raw.githubusercontent.com/${repoInfo.owner}/${repoInfo.repo}/${branch}/${filePath}`;
     
     // JSONファイルの場合は特別な処理を行う

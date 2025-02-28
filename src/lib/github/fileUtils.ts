@@ -172,6 +172,10 @@ export function matchPattern(pattern: string, filePath: string): boolean {
   // 正確なパスマッチ
   if (pattern === filePath) return true;
   
+  // ファイル名のみの比較（パスの最後の部分）
+  const fileName = filePath.split('/').pop() || '';
+  if (pattern === fileName) return true;
+  
   // ワイルドカードを正規表現に変換
   const regexPattern = pattern
     .replace(/\./g, '\\.')
@@ -180,7 +184,9 @@ export function matchPattern(pattern: string, filePath: string): boolean {
   
   // 先頭と末尾のマッチを強制
   const regex = new RegExp(`^${regexPattern}$`);
-  return regex.test(filePath);
+  
+  // ファイルパス全体とファイル名のみの両方でチェック
+  return regex.test(filePath) || regex.test(fileName);
 }
 
 /**
@@ -191,6 +197,11 @@ export function matchPattern(pattern: string, filePath: string): boolean {
  * @returns 無視すべきかどうか
  */
 export function shouldIgnore(filePath: string, ignorePatterns: string[]): boolean {
+  // package-lock.jsonファイルは常に除外
+  if (filePath === 'package-lock.json' || filePath.endsWith('/package-lock.json')) {
+    return true;
+  }
+  
   // 空のパターン配列の場合は無視しない
   if (!ignorePatterns || ignorePatterns.length === 0) return false;
   

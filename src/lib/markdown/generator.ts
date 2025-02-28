@@ -130,6 +130,7 @@ export function generateFileTreeMarkdown(tree: FileTree[], indent: string = ''):
  * @param repoInfo - リポジトリ情報
  * @param filePath - ファイルパス
  * @param branch - ブランチ名
+ * @param ignorePatterns - 無視パターン
  * @param sourceIgnorePatterns - ソースコード内の無視パターン
  * @returns マークダウン文字列のPromise
  */
@@ -137,11 +138,17 @@ export async function generateFileContentMarkdown(
   repoInfo: RepoInfo,
   filePath: string,
   branch: string,
+  ignorePatterns: string[] = [],
   sourceIgnorePatterns: string[] = []
 ): Promise<string> {
   try {
+    // 無視パターンに一致するファイルは除外
+    if (shouldIgnore(filePath, ignorePatterns)) {
+      return '';
+    }
+    
     const fileType = getFileType(filePath);
-    const content = await getFileContent(repoInfo, filePath, branch);
+    const content = await getFileContent(repoInfo, filePath, branch, ignorePatterns);
     
     // ソースコード内の無視パターンに一致する行をフィルタリング
     let filteredContent = content;
@@ -245,15 +252,24 @@ export async function generateRepositoryMarkdown(
   
   // ファイル内容を順番に処理
   for (const file of flatFiles) {
-    if (!shouldIgnore(file.path, ignorePatterns)) {
+    // 無視パターンに一致するファイルは除外
+    if (shouldIgnore(file.path, ignorePatterns)) {
+      continue;
+    }
+    
+    try {
       // awaitを使用して非同期処理の結果を待つ
       const fileMarkdown = await generateFileContentMarkdown(
         repoInfo,
         file.path,
         branch,
+        ignorePatterns,
         sourceIgnorePatterns
       );
       markdown += fileMarkdown;
+    } catch (error) {
+      console.error(`ファイル内容の生成に失敗しました (${file.path}):`, error);
+      markdown += `### ${file.path}\n\n> ファイル内容の取得に失敗しました。\n\n`;
     }
   }
   
